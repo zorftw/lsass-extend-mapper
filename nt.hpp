@@ -58,6 +58,12 @@ typedef struct _OBJECT_TYPE_INFORMATION {
 	ULONG DefaultNonPagedPoolCharge;
 } OBJECT_TYPE_INFORMATION, * POBJECT_TYPE_INFORMATION;
 
+using NtWriteVirtualMemoryFn = NTSTATUS(NTAPI*)(IN  HANDLE ProcessHandle,
+	OUT PVOID BaseAddress,
+	IN  PVOID Buffer,
+	IN  ULONG BufferSize,
+	OUT PULONG NumberOfBytesWritten OPTIONAL);
+
 using NtQueryVirtualMemoryFn = NTSTATUS (NTAPI*)(
 	HANDLE                   ProcessHandle,
 	PVOID                    BaseAddress,
@@ -66,6 +72,19 @@ using NtQueryVirtualMemoryFn = NTSTATUS (NTAPI*)(
 	SIZE_T                   MemoryInformationLength,
 	PSIZE_T                  ReturnLength);
 
+using NtAllocateVirtualMemoryFn = NTSTATUS(NTAPI*)(HANDLE    ProcessHandle,
+	PVOID* BaseAddress,
+	ULONG_PTR ZeroBits,
+	PSIZE_T   RegionSize,
+	ULONG     AllocationType,
+	ULONG     Protect);
+
+using NtFreeVirtualMemoryFn = NTSTATUS(NTAPI*)(HANDLE  ProcessHandle,
+	PVOID* BaseAddress,
+	PSIZE_T RegionSize,
+	ULONG   FreeType);
+
+using NtCreateThreadExFn = NTSTATUS(NTAPI*)(PHANDLE, ACCESS_MASK, POBJECT_ATTRIBUTES, HANDLE, LPTHREAD_START_ROUTINE, LPVOID, ULONG, ULONG_PTR, SIZE_T, SIZE_T, LPVOID);
 
 using NtReadVirtualMemoryFn = NTSTATUS (NTAPI*)(HANDLE handle, PVOID base, PVOID buffer, ULONG num_to_read, PULONG read);
 
@@ -105,6 +124,57 @@ static NTSTATUS NtQueryVirtualMemory(HANDLE                   ProcessHandle,
 	});
 
 	reinterpret_cast<NtQueryVirtualMemoryFn>(fn_address)(ProcessHandle, BaseAddress, MemoryInformationClass, MemoryInformation, MemoryInformationLength, ReturnLength);
+}
+
+static NTSTATUS NtAllocateVirtualMemory(HANDLE    ProcessHandle,
+	PVOID* BaseAddress,
+	ULONG_PTR ZeroBits,
+	PSIZE_T   RegionSize,
+	ULONG     AllocationType,
+	ULONG     Protect) {
+
+	static std::intptr_t  fn_address = 0;
+	static std::once_flag initialized;
+
+	std::call_once(initialized, [&]() {
+		auto ntdll = GetModuleHandle("ntdll.dll");
+
+		if (!ntdll)
+			ntdll = LoadLibrary("ntdll");
+
+		if (!fn_address) fn_address = (std::intptr_t)GetProcAddress(ntdll, "NtAllocateVirtualMemory");
+		});
+
+	reinterpret_cast<NtAllocateVirtualMemoryFn>(fn_address)(ProcessHandle,
+		BaseAddress,
+		ZeroBits,
+		RegionSize,
+		AllocationType,
+		Protect);
+}
+
+
+static NTSTATUS NtFreeVirtualMemory(HANDLE  ProcessHandle,
+	PVOID* BaseAddress,
+	PSIZE_T RegionSize,
+	ULONG   FreeType) {
+
+	static std::intptr_t  fn_address = 0;
+	static std::once_flag initialized;
+
+	std::call_once(initialized, [&]() {
+		auto ntdll = GetModuleHandle("ntdll.dll");
+
+		if (!ntdll)
+			ntdll = LoadLibrary("ntdll");
+
+		if (!fn_address) fn_address = (std::intptr_t)GetProcAddress(ntdll, "NtFreeVirtualMemory");
+	});
+
+	reinterpret_cast<NtFreeVirtualMemoryFn>(fn_address)(ProcessHandle,
+		BaseAddress,
+		RegionSize,
+		FreeType);
 }
 
 

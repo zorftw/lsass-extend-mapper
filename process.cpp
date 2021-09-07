@@ -233,7 +233,6 @@ auto remote_process::retrieve_handle_to(std::string name, std::size_t owner) -> 
 auto remote_process::open(std::size_t rights) -> bool {
 	// if we have a handle already, and we have the requested rights already
 	if (_handle && _rights == rights) {
-		std::cout << "returned because we alreayd have handle" << std::endl;
 		return true; // just keep the current handle
 	}
 
@@ -260,13 +259,9 @@ auto remote_process::close() -> void {
 	_rights = 0;
 }
 
-remote_process::remote_process(std::string name) : _name(name), _handle(nullptr) {
-
+remote_process::remote_process(std::string name) : _name(name), _handle(nullptr), _pid(0), _rights(0) {
 	auto processes = enum_processes();
-
-	auto entry = std::find_if(processes.begin(), processes.end(), [&](PROCESSENTRY32 entry) -> bool {
-		return std::strstr(entry.szExeFile, name.c_str()) != nullptr;
-	});
+	auto entry = processes.find(name);
 
 	if (entry == processes.end()) {
 		__fastfail(0);

@@ -12,12 +12,6 @@
 
 #include "nt.hpp"
 
-template <typename T, typename = void>
-struct has_begin : std::false_type {};
-
-template <typename T>
-struct has_begin<T, decltype(void(std::declval<T&>().begin()))> : std::true_type {};
-
 namespace process {
 	// Convert a PROCESSENTRY to std::string
 	static auto entry_to_string(const PROCESSENTRY32 entry) -> const std::string {
@@ -68,6 +62,11 @@ namespace process {
 
 		// Close the current handle
 		auto close() -> void;
+
+		// Returns the process name
+		auto name() -> const std::string {
+			return _name;
+		}
 
 		// Get the current handle
 		auto handle() -> void* {
@@ -273,6 +272,12 @@ namespace process {
 				return &_cache[_idx];
 			}
 		};
+
+		iterator find(std::string name) {
+			return std::find_if(begin(), end(), [&](iterator::value_type entry) -> bool {
+				return std::strstr(utils::to_lowercase(std::string(entry.szExeFile)).c_str(), utils::to_lowercase(name).c_str()) != nullptr;
+			});
+		}
 
 		iterator begin() { return iterator(); }
 		iterator end() { return iterator(iterator().length()); }

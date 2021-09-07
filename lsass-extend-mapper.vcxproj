@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="elevation.hpp" />
+    <ClInclude Include="lsass.hpp" />
     <ClInclude Include="nt.hpp" />
     <ClInclude Include="process.hpp" />
   </ItemGroup>

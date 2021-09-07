@@ -32,5 +32,8 @@
     <ClInclude Include="nt.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="lsass.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
