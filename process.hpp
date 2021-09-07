@@ -12,6 +12,12 @@
 
 #include "nt.hpp"
 
+template <typename T, typename = void>
+struct has_begin : std::false_type {};
+
+template <typename T>
+struct has_begin<T, decltype(void(std::declval<T&>().begin()))> : std::true_type {};
+
 namespace process {
 	// Convert a PROCESSENTRY to std::string
 	static auto entry_to_string(const PROCESSENTRY32 entry) -> const std::string {
@@ -20,7 +26,9 @@ namespace process {
 
 	// Utilities
 	namespace utils {
-		static auto to_lowercase(std::string entry) -> const std::string {
+
+		template <typename T, std::enable_if_t<std::is_void<decltype(void(std::declval<T&>().begin()))>::value, bool> = true>
+		auto to_lowercase(T entry) -> T {
 			std::transform(entry.begin(), entry.end(), entry.begin(), [](unsigned char c) {
 				return std::tolower(c);
 			});

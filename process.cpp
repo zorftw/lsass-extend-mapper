@@ -187,8 +187,8 @@ auto remote_process::retrieve_handle_to(std::string name, std::size_t owner) -> 
 						wide_process = wide_process.substr(position + 1, wide_process.length());
 
 						// Transform them to lower
-						std::transform(wide_process_name.begin(), wide_process_name.end(), wide_process_name.begin(), std::tolower);
-						std::transform(wide_process.begin(), wide_process.end(), wide_process.begin(), std::tolower);
+						wide_process_name = utils::to_lowercase(wide_process_name);
+						wide_process      = utils::to_lowercase(wide_process);
 
 						// Compare
 						if (wcsstr(wide_process.c_str(), wide_process_name.c_str()) != nullptr) {
